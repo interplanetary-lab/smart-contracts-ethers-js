@@ -1,39 +1,15 @@
 import type { Provider } from '@ethersproject/providers';
-import { BigNumber } from 'ethers';
 
+import { ERC721Round, ERC721RoundSignData } from '../types';
 import {
   ERC721RoundsUpgradeable,
   ERC721RoundsUpgradeable__factory,
 } from '../types/ethers-contracts';
 import AbstractRoundsData from './AbstractRoundsData';
 
-export type ERC721Rounds = {
-  // Contract struct
-  id: BigNumber;
-  supply: number;
-  startTime: BigNumber;
-  duration: BigNumber;
-  price: BigNumber;
-  totalMinted: BigNumber;
-  validator: string;
-
-  // Other data
-  needValidator: boolean;
-};
-
-export type ERC721RoundSignData = {
-  address: string;
-  roundId: number;
-  maxMint: number;
-  smartContractAddress: string;
-  smartContractChainId: string;
-  expires_at: number;
-  signature: string;
-};
-
 export class ERC721RoundsData extends AbstractRoundsData<
   ERC721RoundsUpgradeable,
-  ERC721Rounds,
+  ERC721Round,
   ERC721RoundSignData
 > {
   constructor(options: {
@@ -49,34 +25,11 @@ export class ERC721RoundsData extends AbstractRoundsData<
   }
 
   public async checkSignature(
-    round: ERC721Rounds,
+    round: ERC721Round,
     account: string,
     signData: ERC721RoundSignData,
   ) {
-    const { chainId } = await this.provider.getNetwork();
-
-    this.checkSignaturePartial(signData.expires_at, [
-      {
-        a: signData.smartContractAddress.toLowerCase(),
-        b: this.address.toLowerCase(),
-        name: 'contract',
-      },
-      {
-        a: signData.smartContractChainId,
-        b: chainId,
-        name: 'network',
-      },
-      {
-        a: signData.roundId,
-        b: round.id,
-        name: 'round',
-      },
-      {
-        a: signData.address.toLowerCase(),
-        b: account.toLowerCase(),
-        name: 'wallet',
-      },
-    ]);
+    super.checkSignature(round, account, signData);
   }
 
   public async getAllData() {

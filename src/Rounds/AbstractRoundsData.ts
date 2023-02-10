@@ -1,23 +1,29 @@
 import type { Provider } from '@ethersproject/providers';
 import { BaseContract, CallOverrides, ethers } from 'ethers';
 
+import { ERCRound, ERCRoundSignData } from '../types';
+import { checkSignaturePartial } from '../utils';
+
 type FactoryConnect<C> = (address: string, provider: Provider) => C;
 
-type ContractType<C> = {
+type RoundsDataContract = {
   allRounds: (overrides?: CallOverrides) => Promise<any[]>;
-} & C &
-  BaseContract;
+} & BaseContract;
 
-export default abstract class AbstractRoundsData<C, RoundType, RoundSignData> {
+export default abstract class AbstractRoundsData<
+  ContractType extends RoundsDataContract,
+  RoundType extends ERCRound,
+  RoundSignData extends ERCRoundSignData,
+> {
   public address!: string;
   public provider!: Provider;
-  public contract!: ContractType<C>;
+  public contract!: ContractType;
 
   constructor(options: {
     address?: string;
     provider?: Provider;
     contract?: BaseContract;
-    factory?: FactoryConnect<ContractType<C>>;
+    factory?: FactoryConnect<ContractType>;
   }) {
     if (options.contract) {
       return this.initFromContract(options.contract);
@@ -31,14 +37,14 @@ export default abstract class AbstractRoundsData<C, RoundType, RoundSignData> {
     this.address = contract.address;
     this.provider = contract.provider;
 
-    this.contract = contract as ContractType<C>;
+    this.contract = contract as ContractType;
     return this;
   }
 
   public init(
     address: string,
     provider: Provider,
-    factory: FactoryConnect<ContractType<C>>,
+    factory: FactoryConnect<ContractType>,
   ) {
     this.address = address;
     this.provider = provider;
@@ -51,39 +57,35 @@ export default abstract class AbstractRoundsData<C, RoundType, RoundSignData> {
    * Check if provided signature data is correct for the current configuration.
    * Throw an error if not
    */
-  public abstract checkSignature(
+  public async checkSignature(
     round: RoundType,
     account: string,
     signData: RoundSignData,
-  ): Promise<void>;
-
-  /**
-   * Check all data and throw an error if a signature data is different
-   * @param expiresTimestamp
-   * @param data Array of signature data to compare
-   */
-  protected async checkSignaturePartial(
-    expiresTimestamp: number,
-    /** Data to compare */
-    data: {
-      /** Actual data */
-      a: any;
-      /** Expected data */
-      b: any;
-      /** Name of the comparison to display in the error */
-      name: string;
-    }[],
   ) {
-    if (expiresTimestamp <= Math.floor(Date.now() / 1000)) {
-      throw new Error(`The signature is expired`);
-    }
-    data.forEach(({ a, b, name }) => {
-      if (a != b) {
-        throw new Error(
-          `The signature was not generated for the correct ${name}. ${a} is different from ${b}`,
-        );
-      }
-    });
+    const { chainId } = await this.provider.getNetwork();
+
+    return checkSignaturePartial(signData.expires_at, [
+      {
+        a: signData.smartContractAddress.toLowerCase(),
+        b: this.address.toLowerCase(),
+        name: 'contract',
+      },
+      {
+        a: signData.smartContractChainId,
+        b: chainId,
+        name: 'network',
+      },
+      {
+        a: signData.roundId,
+        b: round.id,
+        name: 'round',
+      },
+      {
+        a: signData.address.toLowerCase(),
+        b: account.toLowerCase(),
+        name: 'wallet',
+      },
+    ]);
   }
 
   /**

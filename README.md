@@ -10,10 +10,9 @@
     - [Installation](#installation)
     - [Usage](#usage)
   - [Documentation](#documentation)
-    - [ERC721RoundsData and ERC1155RoundsData](#erc721roundsdata-and-erc1155roundsdata)
-      - [Constructor](#constructor)
-      - [Get rounds](#get-rounds)
-      - [Verify signature](#verify-signature)
+    - [Rounds](#rounds)
+      - [ERC721RoundsData and ERC1155RoundsData](#erc721roundsdata-and-erc1155roundsdata)
+      - [Rounds state and sorts](#rounds-state-and-sorts)
 
 ## Overview
 
@@ -43,9 +42,11 @@ const { rounds, totalSupply } = await roundsData.getAllData();
 
 ## Documentation
 
-### ERC721RoundsData and ERC1155RoundsData
+### Rounds
 
-#### Constructor
+#### ERC721RoundsData and ERC1155RoundsData
+
+**Constructor**
 
 You can instantiate the `ERC721RoundsData` or `ERC1155RoundsData` with:
 
@@ -79,7 +80,7 @@ const contract = MyERC1155__factory.connect(address, provider);
 const erc1155RoundsData = new ERC1155RoundsData({ contract });
 ```
 
-#### Get rounds
+**Get rounds**
 
 Get all sanitized rounds data, filtered and typed with `ERC721Round` or `ERC1155Round`.
 
@@ -87,7 +88,7 @@ Get all sanitized rounds data, filtered and typed with `ERC721Round` or `ERC1155
 const allRounds = await roundsData.getRounds();
 ```
 
-#### Verify signature
+**Verify signature**
 
 You can check if your signature data fit with your smart contract.
 Allows you to predict in advance that a private mint will not work and have more information than the revert of the contract.
@@ -108,4 +109,83 @@ try {
 } catch (error: Error) {
   console.error(error);
 }
+```
+
+#### Rounds state and sorts
+
+**Test state**
+You can verify if a given round is start, active, next, past...
+
+```javascript
+import {
+  ERC721Round,
+  ERC1155Round,
+  isRoundStart,
+  isRoundEnded,
+  isRoundActive,
+  isRoundNext,
+} from '@interplanetary-lab/smart-contracts-ethers-js';
+
+let round: ERC1155Round | ERC721Round;
+// ...
+
+const isStart = isRoundStart(round);
+const isEnded = isRoundEnded(round);
+const isActive = isRoundActive(round);
+const isNext = isRoundNext(round);
+```
+
+**Rounds filtered by state**
+You can get an array of filtered rounds according to their condition.
+
+```javascript
+import {
+  ERC721Round,
+  ERC1155Round,
+  getActiveRounds,
+  getNextRounds,
+  getPastRounds,
+} from '@interplanetary-lab/smart-contracts-ethers-js';
+
+let rounds: ERC1155Round[] | ERC721Round[];
+// ...
+
+/// rounds started and not ended
+const activeRounds = getActiveRounds(rounds);
+
+/// rounds that have not yet started
+const nextRounds = getNextRounds(rounds);
+
+/// rounds that are finished
+const pastRounds = getPastRounds(rounds);
+
+// or
+
+/// Get all at once (more optimized)
+const { activeRounds, nextRounds, pastRounds } = getRoundsByState(rounds);
+```
+
+**Rounds sorted**
+You can get sort an array of rounds.
+
+```javascript
+import {
+  ERC721Round,
+  ERC1155Round,
+  sortRoundsByStartTime,
+  sortRoundsByPrice,
+  sortRoundsBy,
+} from '@interplanetary-lab/smart-contracts-ethers-js';
+
+let rounds: ERC1155Round[] | ERC721Round[];
+// ...
+
+/// sort rounds by startTime
+const roundsByStartTime = sortRoundsByStartTime(rounds, 'asc');
+
+/// sort rounds by price
+const roundsByPrice = sortRoundsByPrice(rounds, 'desc');
+
+/// sort rounds by a given BigNumber key
+const customSorted = sortRoundsBy('totalMinted', rounds, 'asc');
 ```
