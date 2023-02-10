@@ -5,7 +5,7 @@ import {
   ERC721RoundsUpgradeable,
   ERC721RoundsUpgradeable__factory,
 } from '../types/ethers-contracts';
-import { AbstractRoundsData } from './AbstractRoundsData';
+import AbstractRoundsData from './AbstractRoundsData';
 
 export type ERC721Rounds = {
   // Contract struct
