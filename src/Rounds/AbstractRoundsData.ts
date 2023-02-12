@@ -22,14 +22,25 @@ export default abstract class AbstractRoundsData<
   constructor(options: {
     address?: string;
     provider?: Provider;
-    contract?: BaseContract;
-    factory?: FactoryConnect<ContractType>;
+    contract?: ContractType;
+    factory: FactoryConnect<ContractType>;
   }) {
     if (options.contract) {
-      return this.initFromContract(options.contract);
+      this.initFromContract(options.contract);
+    } else if (options.address && options.provider && options.factory) {
+      this.init(options.address, options.provider, options.factory);
+    } else {
+      if (!options.address && options.provider) {
+        throw Error('Missing contract address');
+      } else if (options.address && !options.provider) {
+        throw Error('Missing provider');
+      } else {
+        throw Error('Need contract instance or address and provider');
+      }
     }
-    if (options.address && options.provider && options.factory) {
-      return this.init(options.address, options.provider, options.factory);
+
+    if (!this.contract) {
+      throw Error('No contracts have been connected');
     }
   }
 
