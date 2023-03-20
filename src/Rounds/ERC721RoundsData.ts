@@ -29,7 +29,7 @@ export class ERC721RoundsData extends AbstractRoundsData<
     account: string,
     signData: ERC721RoundSignData,
   ) {
-    super.checkSignature(round, account, signData);
+    await super.checkSignature(round, account, signData);
   }
 
   public async getAllData() {
