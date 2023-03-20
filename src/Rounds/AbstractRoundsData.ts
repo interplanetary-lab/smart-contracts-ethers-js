@@ -77,7 +77,7 @@ export default abstract class AbstractRoundsData<
 
     return checkSignaturePartial(signData.expires_at, [
       {
-        a: signData.smartContractAddress.toLowerCase(),
+        a: signData.smartContractAddress?.toLowerCase(),
         b: this.address.toLowerCase(),
         name: 'contract',
       },
@@ -92,7 +92,7 @@ export default abstract class AbstractRoundsData<
         name: 'round',
       },
       {
-        a: signData.address.toLowerCase(),
+        a: signData.address?.toLowerCase(),
         b: account.toLowerCase(),
         name: 'wallet',
       },

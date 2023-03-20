@@ -16,13 +16,20 @@ export const checkSignaturePartial = (
     name: string;
   }[],
 ) => {
-  if (expiresTimestamp && expiresTimestamp <= Math.floor(Date.now() / 1000)) {
+  if (!expiresTimestamp) {
+    throw new Error(`The signature has no expiresTimestamp`);
+  } else if (expiresTimestamp <= Math.floor(Date.now() / 1000)) {
     throw new Error(`The signature is expired`);
   }
   data.forEach(({ a, b, name }) => {
+    if (!a) {
+      throw new Error(
+        `The signature was not generated for the correct ${name}. ${a} is NULL.`,
+      );
+    }
     if (a != b) {
       throw new Error(
-        `The signature was not generated for the correct ${name}. ${a} is different from ${b}`,
+        `The signature was not generated for the correct ${name}. ${a} is different from ${b}.`,
       );
     }
   });
