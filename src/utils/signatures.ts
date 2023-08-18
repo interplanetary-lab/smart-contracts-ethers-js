@@ -29,7 +29,7 @@ export const checkSignaturePartial = (
     }
     if (a != b) {
       throw new Error(
-        `The signature was not generated for the correct ${name}. ${a} is different from ${b}.`,
+        `The signature was not generated for the correct ${name}. ${a} (given) is different from ${b} (expected).`,
       );
     }
   });
